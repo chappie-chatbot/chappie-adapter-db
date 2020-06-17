@@ -1,0 +1,30 @@
+server:
+  port: 8081
+spring:
+  kafka:
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  json:
+    value:
+      default:
+        type: com.chg.hackdays.chappie.model.Message
+    use:
+      type:
+        headers: false
+  liquibase:
+    enabled: false
+    change-log: 'classpath:liquibase/changelog.xml'
+  datasource:
+    url: jdbc:postgresql://10.0.1.1:5432/chappie
+    username: chappie
+    password: chappie
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+kafka:
+  bootstrapAddress: k1.local:9092,k2.local:9092,k3.local:9092
+  groupId: chappie-db-adapter
+  defaultTopic: chat
+
