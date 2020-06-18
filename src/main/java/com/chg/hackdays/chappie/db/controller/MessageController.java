@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 @RestController
 public class MessageController extends BaseController {
+    private static final String DOCUMENT_ENCODING = "base64";
     @Autowired
     MessageRepository messageService;
 
@@ -100,9 +101,9 @@ public class MessageController extends BaseController {
             message.setMime("text/plain");
             message.setText(entity.getText());
         } else {
-            message.setType(EncodeUtil.DEFAULT_ENCODING);
+            message.setType(DOCUMENT_ENCODING);
             message.setMime(entity.getDocument().getMime());
-            message.setText(EncodeUtil.encode(entity.getDocument().getData()));
+            message.setText(EncodeUtil.encode(DOCUMENT_ENCODING, entity.getDocument().getData()));
         }
         message.setTimestamp(ZonedDateTime.ofInstant(entity.getSentTime(), ZoneId.systemDefault()));
         for (Map.Entry<String, MessageAttributeEntity> e : entity.getAttributes().entrySet()) {
