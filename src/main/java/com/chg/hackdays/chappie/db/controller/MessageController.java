@@ -38,14 +38,33 @@ public class MessageController extends BaseController {
     @GetMapping("/message")
     public ResponseEntity<ListResponse> getMessages(
             @RequestParam("topic") String topic,
+            @RequestParam(name = "conversation", required = false) Long conversationId,
             @RequestParam(name = "start", required = false) Long start,
             @RequestParam(name = "count", required = false) Integer count) {
         return respond(new ListResponse(), resp -> {
+            Long realStart = start;
+            if (realStart != null && realStart < 0) {
+                long lastOffset;
+                if (conversationId != null) {
+                    lastOffset = messageService.findMaxOffsetByTopicNameAndConversationId(topic, conversationId);
+                } else {
+                    lastOffset = messageService.findMaxOffsetByTopicName(topic);
+                }
+                realStart = Math.max(0, lastOffset + realStart + 1);
+            }
             if (count != null && count > 0) {
                 Pageable pageable = PageRequest.of(0, count);
-                resp.getItems().addAll(mapMessages(messageService.findByTopicIdAndMinOffset(topic, start == null ? 0L : start, pageable)));
+                if (conversationId != null) {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndConversationIdAndMinOffset(topic, conversationId, realStart == null ? 0L : realStart, pageable)));
+                } else {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndMinOffset(topic, realStart == null ? 0L : realStart, pageable)));
+                }
             } else {
-                resp.getItems().addAll(mapMessages(messageService.findByTopicIdAndMinOffset(topic, start == null ? 0L : start)));
+                if (conversationId != null) {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndConversationIdAndMinOffset(topic, conversationId, realStart == null ? 0L : realStart)));
+                } else {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndMinOffset(topic, realStart == null ? 0L : realStart)));
+                }
             }
         });
     }

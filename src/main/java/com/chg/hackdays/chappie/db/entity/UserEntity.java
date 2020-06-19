@@ -13,6 +13,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -33,7 +34,7 @@ public class UserEntity {
     private Instant createdDate;
 
     @ManyToMany (mappedBy = "participants")
-    private Set<ConversationEntity> conversations;
+    private Set<ConversationEntity> conversations = new HashSet<>();
 
     public UserEntity() {
     }

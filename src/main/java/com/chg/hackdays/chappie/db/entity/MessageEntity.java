@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -88,7 +89,7 @@ public class MessageEntity {
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name="id")
     @MapKeyColumn(name="name")
-    private Map<String, MessageAttributeEntity> attributes;
+    private Map<String, MessageAttributeEntity> attributes = new HashMap<>();
 
     public long getId() {
         return id;

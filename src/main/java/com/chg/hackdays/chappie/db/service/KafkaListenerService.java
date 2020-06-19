@@ -103,10 +103,10 @@ public class KafkaListenerService {
             // Save participants added to conversation
             conversationRepository.save(conversation);
 
+            byte[] data = EncodeUtil.decode(message.getType(), message.getText());
             if (MimeUtil.isText(message.getMime())) {
-                entity.setText(message.getText());
+                entity.setText(new String(data));
             } else {
-                byte[] data = EncodeUtil.decode(message.getType(), message.getText());
                 entity.setDocument(getOrCreateDocument(data, message.getMime()));
             }
             entity.setSentTime(message.getTimestamp().toInstant());

@@ -5,11 +5,12 @@ import com.chg.hackdays.chappie.db.entity.UserEntity;
 import com.chg.hackdays.chappie.db.repository.ConversationRepository;
 import com.chg.hackdays.chappie.db.repository.UserRepository;
 import com.chg.hackdays.chappie.model.Conversation;
+import com.chg.hackdays.chappie.model.ItemResponse;
 import com.chg.hackdays.chappie.model.ListResponse;
-import com.chg.hackdays.chappie.server.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,6 +34,15 @@ public class ConversationController extends BaseController {
             @RequestParam(name = "participant", required = false) String participant) {
         return respond(new ListResponse(), resp -> {
             resp.getItems().addAll(mapConversations(findConversations(id, participant)));
+        });
+    }
+
+    @PostMapping("/conversation")
+    public ResponseEntity<ItemResponse> createConversation() {
+        return respond(new ItemResponse(), resp -> {
+            ConversationEntity conversation = new ConversationEntity();
+            conversationRepository.save(conversation);
+            resp.setItem(mapConversation(conversation));
         });
     }
 
@@ -66,7 +76,7 @@ public class ConversationController extends BaseController {
     private Conversation mapConversation(ConversationEntity entity) {
         Conversation conversation = new Conversation();
         conversation.setId(entity.getId());
-        conversation.setStartTime(ZonedDateTime.ofInstant(entity.getCreatedDate(), ZoneId.systemDefault()));
+        conversation.setStartTime(entity.getCreatedDate() == null ? ZonedDateTime.now() : ZonedDateTime.ofInstant(entity.getCreatedDate(), ZoneId.systemDefault()));
         conversation.setParticipants(entity.getParticipants().stream().map(UserEntity::getName).collect(Collectors.toList()));
         return conversation;
     }
