@@ -44,13 +44,13 @@ public class MessageController extends BaseController {
         return respond(new ListResponse(), resp -> {
             Long realStart = start;
             if (realStart != null && realStart < 0) {
-                long lastOffset;
+                Long lastOffset;
                 if (conversationId != null) {
                     lastOffset = messageService.findMaxOffsetByTopicNameAndConversationId(topic, conversationId);
                 } else {
                     lastOffset = messageService.findMaxOffsetByTopicName(topic);
                 }
-                realStart = Math.max(0, lastOffset + realStart + 1);
+                realStart = lastOffset == null ? 0L : Math.max(0, lastOffset + realStart + 1);
             }
             if (count != null && count > 0) {
                 Pageable pageable = PageRequest.of(0, count);
