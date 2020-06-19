@@ -34,5 +34,5 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     Long findMaxOffsetByTopicName(String topicName);
 
     @Query("SELECT MAX(topicOffset) FROM MessageEntity m WHERE topic.name = :topicName AND conversationId=:conversationId")
-    long findMaxOffsetByTopicNameAndConversationId(String topicName, Long conversationId);
+    Long findMaxOffsetByTopicNameAndConversationId(String topicName, Long conversationId);
 }
