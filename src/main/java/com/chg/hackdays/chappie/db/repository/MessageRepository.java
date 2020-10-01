@@ -11,16 +11,28 @@ import java.util.List;
 
 @Repository
 public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
-    @Query("SELECT m FROM MessageEntity m WHERE topicId = :topicId AND topicOffset >= :minOffset")
-    List<MessageEntity> findByTopicIdAndMinOffset(String topicId, long minOffset);
+    @Query("SELECT m FROM MessageEntity m WHERE topic.name = :topicName AND topicOffset >= :minOffset")
+    List<MessageEntity> findByTopicNameAndMinOffset(String topicName, long minOffset);
+
+    @Query("SELECT m FROM MessageEntity m WHERE topic.name = :topicName AND conversationId=:conversationId AND topicOffset >= :minOffset")
+    List<MessageEntity> findByTopicNameAndConversationIdAndMinOffset(String topicName, Long conversationId, long minOffset);
 
     @Query("SELECT m FROM MessageEntity m WHERE topic.name = :topicName AND topicOffset = :topicOffset")
     MessageEntity findOneByTopicNameAndTopicOffset(String topicName, long topicOffset);
 
     @Query("SELECT m FROM MessageEntity m WHERE topic.name = :topicName AND topicOffset >= :minOffset")
-    List<MessageEntity> findByTopicIdAndMinOffset(String topicName, long minOffset, Pageable pageable);
+    List<MessageEntity> findByTopicNameAndMinOffset(String topicName, long minOffset, Pageable pageable);
 
-    default MessageEntity findOneByMessageId(MessageId messageId){
-        return findOneByTopicNameAndTopicOffset(messageId.getTopic(),messageId.getOffset());
+    @Query("SELECT m FROM MessageEntity m WHERE topic.name = :topicName AND conversationId=:conversationId AND topicOffset >= :minOffset")
+    List<MessageEntity> findByTopicNameAndConversationIdAndMinOffset(String topicName, Long conversationId, long minOffset, Pageable pageable);
+
+    default MessageEntity findOneByMessageId(MessageId messageId) {
+        return findOneByTopicNameAndTopicOffset(messageId.getTopic(), messageId.getOffset());
     }
+
+    @Query("SELECT MAX(topicOffset) FROM MessageEntity m WHERE topic.name = :topicName")
+    Long findMaxOffsetByTopicName(String topicName);
+
+    @Query("SELECT MAX(topicOffset) FROM MessageEntity m WHERE topic.name = :topicName AND conversationId=:conversationId")
+    Long findMaxOffsetByTopicNameAndConversationId(String topicName, Long conversationId);
 }

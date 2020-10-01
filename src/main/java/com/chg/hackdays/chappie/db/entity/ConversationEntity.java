@@ -15,6 +15,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -35,10 +36,10 @@ public class ConversationEntity {
             name = "conversation_participant",
             joinColumns = @JoinColumn(name = "conversation_id"),
             inverseJoinColumns = @JoinColumn(name = "participant_id"))
-    private Set<UserEntity> participants;
+    private Set<UserEntity> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "conversation")
-    private Set<MessageEntity> messages;
+    private Set<MessageEntity> messages = new HashSet<>();
 
     public ConversationEntity() {
     }

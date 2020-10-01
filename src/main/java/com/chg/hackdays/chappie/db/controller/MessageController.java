@@ -31,20 +31,40 @@ import java.util.stream.Collectors;
 
 @RestController
 public class MessageController extends BaseController {
+    private static final String DOCUMENT_ENCODING = "base64";
     @Autowired
     MessageRepository messageService;
 
     @GetMapping("/message")
     public ResponseEntity<ListResponse> getMessages(
             @RequestParam("topic") String topic,
+            @RequestParam(name = "conversation", required = false) Long conversationId,
             @RequestParam(name = "start", required = false) Long start,
             @RequestParam(name = "count", required = false) Integer count) {
         return respond(new ListResponse(), resp -> {
+            Long realStart = start;
+            if (realStart != null && realStart < 0) {
+                Long lastOffset;
+                if (conversationId != null) {
+                    lastOffset = messageService.findMaxOffsetByTopicNameAndConversationId(topic, conversationId);
+                } else {
+                    lastOffset = messageService.findMaxOffsetByTopicName(topic);
+                }
+                realStart = lastOffset == null ? 0L : Math.max(0, lastOffset + realStart + 1);
+            }
             if (count != null && count > 0) {
                 Pageable pageable = PageRequest.of(0, count);
-                resp.getItems().addAll(mapMessages(messageService.findByTopicIdAndMinOffset(topic, start == null ? 0L : start, pageable)));
+                if (conversationId != null) {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndConversationIdAndMinOffset(topic, conversationId, realStart == null ? 0L : realStart, pageable)));
+                } else {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndMinOffset(topic, realStart == null ? 0L : realStart, pageable)));
+                }
             } else {
-                resp.getItems().addAll(mapMessages(messageService.findByTopicIdAndMinOffset(topic, start == null ? 0L : start)));
+                if (conversationId != null) {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndConversationIdAndMinOffset(topic, conversationId, realStart == null ? 0L : realStart)));
+                } else {
+                    resp.getItems().addAll(mapMessages(messageService.findByTopicNameAndMinOffset(topic, realStart == null ? 0L : realStart)));
+                }
             }
         });
     }
@@ -100,9 +120,9 @@ public class MessageController extends BaseController {
             message.setMime("text/plain");
             message.setText(entity.getText());
         } else {
-            message.setType(EncodeUtil.DEFAULT_ENCODING);
+            message.setType(DOCUMENT_ENCODING);
             message.setMime(entity.getDocument().getMime());
-            message.setText(EncodeUtil.encode(entity.getDocument().getData()));
+            message.setText(EncodeUtil.encode(DOCUMENT_ENCODING, entity.getDocument().getData()));
         }
         message.setTimestamp(ZonedDateTime.ofInstant(entity.getSentTime(), ZoneId.systemDefault()));
         for (Map.Entry<String, MessageAttributeEntity> e : entity.getAttributes().entrySet()) {
